@@ -1,73 +1,56 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Search, SlidersHorizontal, MapPin, Loader2, CheckCircle2 } from "lucide-react";
+import { Search, SlidersHorizontal, MapPin } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { HOSPITALS } from "@/data/mockData";
 import HospitalCard from "@/components/HospitalCard";
-import { useGeolocation, calculateDistance } from "@/hooks/use-geolocation";
-
-const CITIES = [...new Set(HOSPITALS.map(h => h.city))];
+import { useLocationContext } from "@/contexts/LocationContext";
+import { calculateDistance } from "@/hooks/use-geolocation";
 
 const HospitalSearchPage = () => {
   const [searchParams] = useSearchParams();
   const initialSearch = searchParams.get("search") || "";
 
   const [search, setSearch] = useState(initialSearch);
-  const [city, setCity] = useState("");
   const [emergencyOnly, setEmergencyOnly] = useState(false);
   const [icuOnly, setIcuOnly] = useState(false);
   const [is24x7, setIs24x7] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [maxDistance, setMaxDistance] = useState<number>(0); // 0 = no limit
 
-  const { location, loading, detect } = useGeolocation(true);
+  const { selectedCity, userCoords } = useLocationContext();
 
   const filtered = useMemo(() => {
-    return HOSPITALS.map(h => {
-      const distance = location
-        ? calculateDistance(location.lat, location.lng, h.lat, h.lng)
-        : h.distance;
-      return { ...h, distance };
-    })
+    return HOSPITALS
       .filter(h => {
+        // Filter by selected city
+        if (selectedCity && h.city !== selectedCity) return false;
         if (search && !h.name.toLowerCase().includes(search.toLowerCase())) return false;
-        if (city && h.city !== city) return false;
         if (emergencyOnly && !h.emergencySupported) return false;
         if (icuOnly && !h.icuAvailable) return false;
         if (is24x7 && !h.is24x7) return false;
-        if (maxDistance > 0 && h.distance !== undefined && h.distance > maxDistance) return false;
         return true;
       })
+      .map(h => ({
+        ...h,
+        distance: userCoords ? calculateDistance(userCoords.lat, userCoords.lng, h.lat, h.lng) : undefined,
+      }))
       .sort((a, b) => (a.distance ?? 999) - (b.distance ?? 999));
-  }, [search, city, emergencyOnly, icuOnly, is24x7, location, maxDistance]);
+  }, [search, emergencyOnly, icuOnly, is24x7, selectedCity, userCoords]);
 
-  const activeFilters = [city, emergencyOnly && "Emergency", icuOnly && "ICU", is24x7 && "24×7", maxDistance > 0 && "Distance"].filter(Boolean).length;
+  const activeFilters = [emergencyOnly && "Emergency", icuOnly && "ICU", is24x7 && "24×7"].filter(Boolean).length;
 
   return (
     <div className="container mx-auto px-4 py-8">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="font-display text-3xl font-bold text-foreground mb-2">Find Hospitals</h1>
-        <p className="text-muted-foreground mb-2">Search and filter hospitals near you</p>
-
-        {/* Location status */}
-        <div className="flex items-center gap-2 text-sm mb-6">
-          <MapPin className="w-4 h-4 text-muted-foreground" />
-          {loading ? (
-            <span className="flex items-center gap-1.5 text-primary">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              Detecting location...
-            </span>
-          ) : location ? (
-            <span className="flex items-center gap-1.5 text-success">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              Showing hospitals sorted by distance
-            </span>
-          ) : (
-            <button onClick={detect} className="text-primary hover:underline underline-offset-2">
-              Enable location to see nearby hospitals
-            </button>
-          )}
-        </div>
+        <h1 className="font-display text-3xl font-bold text-foreground mb-2">
+          {selectedCity ? `Hospitals in ${selectedCity}` : "Find Hospitals"}
+        </h1>
+        <p className="text-muted-foreground mb-6">
+          {selectedCity
+            ? `Showing all hospitals in the ${selectedCity} area`
+            : "Select a city from the top bar or detect your location to see nearby hospitals"
+          }
+        </p>
 
         {/* Search + filter toggle */}
         <div className="flex gap-3 mb-6">
@@ -109,41 +92,13 @@ const HospitalSearchPage = () => {
             <div className="flex items-center justify-between mb-4">
               <span className="font-display font-semibold text-foreground">Filters</span>
               <button
-                onClick={() => { setCity(""); setEmergencyOnly(false); setIcuOnly(false); setIs24x7(false); setMaxDistance(0); }}
+                onClick={() => { setEmergencyOnly(false); setIcuOnly(false); setIs24x7(false); }}
                 className="text-sm text-primary hover:underline"
               >
                 Clear all
               </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <div>
-                <label className="text-sm font-medium text-foreground mb-1 block">City</label>
-                <select
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm"
-                >
-                  <option value="">All Cities</option>
-                  {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
-              {location && (
-                <div>
-                  <label className="text-sm font-medium text-foreground mb-1 block">Max Distance</label>
-                  <select
-                    value={maxDistance}
-                    onChange={(e) => setMaxDistance(Number(e.target.value))}
-                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm"
-                  >
-                    <option value={0}>Any distance</option>
-                    <option value={5}>Within 5 km</option>
-                    <option value={10}>Within 10 km</option>
-                    <option value={25}>Within 25 km</option>
-                    <option value={50}>Within 50 km</option>
-                    <option value={100}>Within 100 km</option>
-                  </select>
-                </div>
-              )}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={emergencyOnly} onChange={(e) => setEmergencyOnly(e.target.checked)} className="rounded" />
                 <span className="text-sm text-foreground">Emergency Support</span>
@@ -161,7 +116,10 @@ const HospitalSearchPage = () => {
         )}
 
         {/* Results */}
-        <div className="text-sm text-muted-foreground mb-4">{filtered.length} hospitals found</div>
+        <div className="text-sm text-muted-foreground mb-4">
+          {filtered.length} hospitals found
+          {selectedCity && <span className="text-primary font-medium"> in {selectedCity}</span>}
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filtered.map((hospital) => (
             <HospitalCard key={hospital.id} hospital={hospital} />
@@ -169,8 +127,9 @@ const HospitalSearchPage = () => {
         </div>
         {filtered.length === 0 && (
           <div className="text-center py-16 text-muted-foreground">
-            <p className="text-lg font-medium">No hospitals found</p>
-            <p className="text-sm mt-1">Try adjusting your search or filters</p>
+            <MapPin className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
+            <p className="text-lg font-medium">No hospitals found{selectedCity ? ` in ${selectedCity}` : ""}</p>
+            <p className="text-sm mt-1">Try selecting a different city or adjusting your filters</p>
           </div>
         )}
       </motion.div>
