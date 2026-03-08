@@ -1,7 +1,19 @@
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useState } from "react";
 import { MapPin, Phone, Clock, Star, ArrowLeft, Building2, Stethoscope, Calendar, MessageCircle } from "lucide-react";
 import { DOCTORS, HOSPITALS, Doctor } from "@/data/mockData";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 /** Get consultation type display text */
 function getConsultationTypeText(type: Doctor["consultationType"]): string {
@@ -16,6 +28,14 @@ function getConsultationTypeText(type: Doctor["consultationType"]): string {
 const DoctorDetailPage = () => {
   const { id } = useParams();
   const doctor = DOCTORS.find(d => d.id === id);
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [bookingData, setBookingData] = useState({
+    date: "",
+    time: "",
+    reason: "",
+    patientName: "",
+    phone: "",
+  });
 
   if (!doctor) {
     return (
@@ -27,6 +47,14 @@ const DoctorDetailPage = () => {
   }
 
   const hospital = HOSPITALS.find(h => h.id === doctor.hospitalId);
+
+  const handleBookingSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // In a real app, this would submit to a backend
+    alert(`Appointment booked successfully!\n\nDoctor: ${doctor.name}\nDate: ${bookingData.date}\nTime: ${bookingData.time}\nPatient: ${bookingData.patientName}\nPhone: ${bookingData.phone}\nReason: ${bookingData.reason}\n\nConsultation Fee: ₹${doctor.consultationFee}`);
+    setIsBookingOpen(false);
+    setBookingData({ date: "", time: "", reason: "", patientName: "", phone: "" });
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -86,9 +114,92 @@ const DoctorDetailPage = () => {
             </div>
 
             <div className="flex flex-col gap-2">
-              <button className="px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity">
-                📅 Book Appointment
-              </button>
+              <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
+                <DialogTrigger asChild>
+                  <button className="px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity">
+                    📅 Book Appointment
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px]">
+                  <DialogHeader>
+                    <DialogTitle>Book Appointment with {doctor.name}</DialogTitle>
+                    <DialogDescription>
+                      Fill in your details to schedule an appointment. Consultation fee: ₹{doctor.consultationFee}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleBookingSubmit} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="patientName">Patient Name</Label>
+                        <Input
+                          id="patientName"
+                          placeholder="Enter your name"
+                          value={bookingData.patientName}
+                          onChange={(e) => setBookingData({ ...bookingData, patientName: e.target.value })}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">Phone Number</Label>
+                        <Input
+                          id="phone"
+                          type="tel"
+                          placeholder="Enter phone number"
+                          value={bookingData.phone}
+                          onChange={(e) => setBookingData({ ...bookingData, phone: e.target.value })}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="date">Preferred Date</Label>
+                        <Input
+                          id="date"
+                          type="date"
+                          value={bookingData.date}
+                          onChange={(e) => setBookingData({ ...bookingData, date: e.target.value })}
+                          min={new Date().toISOString().split('T')[0]}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="time">Preferred Time</Label>
+                        <Input
+                          id="time"
+                          type="time"
+                          value={bookingData.time}
+                          onChange={(e) => setBookingData({ ...bookingData, time: e.target.value })}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="reason">Reason for Visit</Label>
+                      <Input
+                        id="reason"
+                        placeholder="Brief description of your health concern"
+                        value={bookingData.reason}
+                        onChange={(e) => setBookingData({ ...bookingData, reason: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="flex gap-2 pt-4">
+                      <Button type="submit" className="flex-1">
+                        Confirm Booking
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsBookingOpen(false)}
+                        className="flex-1"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
               <button className="px-6 py-3 rounded-lg bg-secondary text-secondary-foreground font-semibold hover:opacity-90 transition-opacity">
                 💬 Send Message
               </button>
