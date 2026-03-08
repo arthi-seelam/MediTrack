@@ -1,10 +1,21 @@
 import { motion } from "framer-motion";
-import { Siren, Phone, MapPin, Navigation } from "lucide-react";
+import { Siren, Phone, MapPin, Loader2, CheckCircle2 } from "lucide-react";
 import { HOSPITALS } from "@/data/mockData";
 import HospitalCard from "@/components/HospitalCard";
+import { useGeolocation, calculateDistance } from "@/hooks/use-geolocation";
 
 const EmergencyPage = () => {
-  const emergencyHospitals = HOSPITALS.filter(h => h.emergencySupported).sort((a, b) => (a.distance || 99) - (b.distance || 99));
+  const { location, loading, detect } = useGeolocation(true);
+
+  const emergencyHospitals = HOSPITALS
+    .filter(h => h.emergencySupported)
+    .map(h => ({
+      ...h,
+      distance: location
+        ? calculateDistance(location.lat, location.lng, h.lat, h.lng)
+        : h.distance,
+    }))
+    .sort((a, b) => (a.distance || 999) - (b.distance || 999));
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -22,9 +33,30 @@ const EmergencyPage = () => {
           <h1 className="font-display text-3xl md:text-4xl font-extrabold text-foreground mb-2">
             Emergency Services
           </h1>
-          <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
+          <p className="text-muted-foreground mb-4 max-w-lg mx-auto">
             Tap the button above or call emergency services immediately. We'll show you the nearest hospitals with emergency support.
           </p>
+
+          {/* Location status */}
+          <div className="flex items-center justify-center gap-2 text-sm mb-6">
+            <MapPin className="w-4 h-4 text-muted-foreground" />
+            {loading ? (
+              <span className="flex items-center gap-1.5 text-primary">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                Detecting your location...
+              </span>
+            ) : location ? (
+              <span className="flex items-center gap-1.5 text-success">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                Showing nearest emergency hospitals
+              </span>
+            ) : (
+              <button onClick={detect} className="text-primary hover:underline underline-offset-2">
+                Enable location for nearest results
+              </button>
+            )}
+          </div>
+
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <a
               href="tel:112"
