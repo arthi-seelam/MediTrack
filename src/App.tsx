@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import HospitalSearchPage from "./pages/HospitalSearchPage";
 import DoctorSearchPage from "./pages/DoctorSearchPage";
 import HospitalDetailPage from "./pages/HospitalDetailPage";
+import DoctorDetailPage from "./pages/DoctorDetailPage";
 import EmergencyPage from "./pages/EmergencyPage";
 import NotFound from "./pages/NotFound";
 
@@ -27,6 +28,7 @@ const App = () => (
               <Route path="/hospitals" element={<HospitalSearchPage />} />
               <Route path="/hospitals/:id" element={<HospitalDetailPage />} />
               <Route path="/doctors" element={<DoctorSearchPage />} />
+              <Route path="/doctors/:id" element={<DoctorDetailPage />} />
               <Route path="/emergency" element={<EmergencyPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />

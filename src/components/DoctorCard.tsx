@@ -1,5 +1,6 @@
 import { Doctor } from "@/data/mockData";
 import { Star, Clock, Building2, Stethoscope } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface DoctorCardProps {
   readonly doctor: Doctor;
@@ -84,12 +85,18 @@ const DoctorCard: React.FC<DoctorCardProps> = ({ doctor }) => {
 
       {/* Action Buttons */}
       <div className="mt-4 flex gap-2">
-        <button className="flex-1 rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">
+        <button
+          onClick={() => alert(`Booking appointment with ${doctor.name}\nConsultation Fee: ₹${doctor.consultationFee}\nType: ${doctor.consultationType}\n\nThis is a placeholder. In a real app, this would open a booking form or calendar.`)}
+          className="flex-1 rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+        >
           Book Appointment
         </button>
-        <button className="flex-1 rounded-lg bg-secondary py-2.5 text-sm font-semibold text-secondary-foreground transition-opacity hover:opacity-90">
+        <Link
+          to={`/doctors/${doctor.id}`}
+          className="flex-1 rounded-lg bg-secondary py-2.5 text-center text-sm font-semibold text-secondary-foreground transition-opacity hover:opacity-90"
+        >
           View Profile
-        </button>
+        </Link>
       </div>
     </div>
   );
