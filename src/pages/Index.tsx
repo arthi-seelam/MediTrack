@@ -1,8 +1,9 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Search, MapPin, Building2, UserRound, Siren, Heart, Brain, Baby, Bone, Stethoscope, Eye } from "lucide-react";
+import { Search, MapPin, Building2, UserRound, Siren, Heart, Brain, Baby, Bone, Stethoscope, Eye, Loader2, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { SPECIALTIES } from "@/data/mockData";
+import { useGeolocation } from "@/hooks/use-geolocation";
 
 const SPECIALTY_ICONS: Record<string, React.ReactNode> = {
   cardiology: <Heart className="w-6 h-6" />,
@@ -22,6 +23,14 @@ const fadeUp = {
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const { location, loading, error, detect } = useGeolocation();
+  const navigate = useNavigate();
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      navigate(`/hospitals?search=${encodeURIComponent(searchQuery)}`);
+    }
+  };
 
   return (
     <div>
@@ -56,19 +65,43 @@ const Index = () => {
                   placeholder="Search hospitals, doctors, or specialties..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                   className="flex-1 px-4 py-4 bg-transparent text-foreground placeholder:text-muted-foreground outline-none text-sm"
                 />
-                <button className="px-6 py-4 bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity">
+                <button
+                  onClick={handleSearch}
+                  className="px-6 py-4 bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+                >
                   Search
                 </button>
               </div>
               <div className="flex items-center justify-center gap-2 mt-3 text-sm text-muted-foreground">
                 <MapPin className="w-4 h-4" />
-                <button className="hover:text-primary transition-colors underline underline-offset-2">
-                  Detect my location
-                </button>
-                <span>or type your city</span>
+                {loading ? (
+                  <span className="flex items-center gap-1.5 text-primary">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Detecting location...
+                  </span>
+                ) : location ? (
+                  <span className="flex items-center gap-1.5 text-success">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    Location detected — showing nearby results
+                  </span>
+                ) : (
+                  <>
+                    <button
+                      onClick={detect}
+                      className="hover:text-primary transition-colors underline underline-offset-2"
+                    >
+                      Detect my location
+                    </button>
+                    <span>or type your city</span>
+                  </>
+                )}
               </div>
+              {error && (
+                <p className="text-xs text-destructive mt-1">{error}</p>
+              )}
             </div>
           </motion.div>
         </div>

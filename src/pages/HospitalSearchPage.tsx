@@ -1,37 +1,73 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { Search, SlidersHorizontal, MapPin, Loader2, CheckCircle2 } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import { HOSPITALS } from "@/data/mockData";
 import HospitalCard from "@/components/HospitalCard";
+import { useGeolocation, calculateDistance } from "@/hooks/use-geolocation";
 
 const CITIES = [...new Set(HOSPITALS.map(h => h.city))];
 
 const HospitalSearchPage = () => {
-  const [search, setSearch] = useState("");
+  const [searchParams] = useSearchParams();
+  const initialSearch = searchParams.get("search") || "";
+
+  const [search, setSearch] = useState(initialSearch);
   const [city, setCity] = useState("");
   const [emergencyOnly, setEmergencyOnly] = useState(false);
   const [icuOnly, setIcuOnly] = useState(false);
   const [is24x7, setIs24x7] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [maxDistance, setMaxDistance] = useState<number>(0); // 0 = no limit
+
+  const { location, loading, detect } = useGeolocation(true);
 
   const filtered = useMemo(() => {
-    return HOSPITALS.filter(h => {
-      if (search && !h.name.toLowerCase().includes(search.toLowerCase())) return false;
-      if (city && h.city !== city) return false;
-      if (emergencyOnly && !h.emergencySupported) return false;
-      if (icuOnly && !h.icuAvailable) return false;
-      if (is24x7 && !h.is24x7) return false;
-      return true;
-    });
-  }, [search, city, emergencyOnly, icuOnly, is24x7]);
+    return HOSPITALS.map(h => {
+      const distance = location
+        ? calculateDistance(location.lat, location.lng, h.lat, h.lng)
+        : h.distance;
+      return { ...h, distance };
+    })
+      .filter(h => {
+        if (search && !h.name.toLowerCase().includes(search.toLowerCase())) return false;
+        if (city && h.city !== city) return false;
+        if (emergencyOnly && !h.emergencySupported) return false;
+        if (icuOnly && !h.icuAvailable) return false;
+        if (is24x7 && !h.is24x7) return false;
+        if (maxDistance > 0 && h.distance !== undefined && h.distance > maxDistance) return false;
+        return true;
+      })
+      .sort((a, b) => (a.distance ?? 999) - (b.distance ?? 999));
+  }, [search, city, emergencyOnly, icuOnly, is24x7, location, maxDistance]);
 
-  const activeFilters = [city, emergencyOnly && "Emergency", icuOnly && "ICU", is24x7 && "24×7"].filter(Boolean).length;
+  const activeFilters = [city, emergencyOnly && "Emergency", icuOnly && "ICU", is24x7 && "24×7", maxDistance > 0 && "Distance"].filter(Boolean).length;
 
   return (
     <div className="container mx-auto px-4 py-8">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="font-display text-3xl font-bold text-foreground mb-2">Find Hospitals</h1>
-        <p className="text-muted-foreground mb-6">Search and filter hospitals near you</p>
+        <p className="text-muted-foreground mb-2">Search and filter hospitals near you</p>
+
+        {/* Location status */}
+        <div className="flex items-center gap-2 text-sm mb-6">
+          <MapPin className="w-4 h-4 text-muted-foreground" />
+          {loading ? (
+            <span className="flex items-center gap-1.5 text-primary">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              Detecting location...
+            </span>
+          ) : location ? (
+            <span className="flex items-center gap-1.5 text-success">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              Showing hospitals sorted by distance
+            </span>
+          ) : (
+            <button onClick={detect} className="text-primary hover:underline underline-offset-2">
+              Enable location to see nearby hospitals
+            </button>
+          )}
+        </div>
 
         {/* Search + filter toggle */}
         <div className="flex gap-3 mb-6">
@@ -73,13 +109,13 @@ const HospitalSearchPage = () => {
             <div className="flex items-center justify-between mb-4">
               <span className="font-display font-semibold text-foreground">Filters</span>
               <button
-                onClick={() => { setCity(""); setEmergencyOnly(false); setIcuOnly(false); setIs24x7(false); }}
+                onClick={() => { setCity(""); setEmergencyOnly(false); setIcuOnly(false); setIs24x7(false); setMaxDistance(0); }}
                 className="text-sm text-primary hover:underline"
               >
                 Clear all
               </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               <div>
                 <label className="text-sm font-medium text-foreground mb-1 block">City</label>
                 <select
@@ -91,6 +127,23 @@ const HospitalSearchPage = () => {
                   {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
+              {location && (
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-1 block">Max Distance</label>
+                  <select
+                    value={maxDistance}
+                    onChange={(e) => setMaxDistance(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm"
+                  >
+                    <option value={0}>Any distance</option>
+                    <option value={5}>Within 5 km</option>
+                    <option value={10}>Within 10 km</option>
+                    <option value={25}>Within 25 km</option>
+                    <option value={50}>Within 50 km</option>
+                    <option value={100}>Within 100 km</option>
+                  </select>
+                </div>
+              )}
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={emergencyOnly} onChange={(e) => setEmergencyOnly(e.target.checked)} className="rounded" />
                 <span className="text-sm text-foreground">Emergency Support</span>
