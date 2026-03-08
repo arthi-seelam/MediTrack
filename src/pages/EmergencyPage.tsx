@@ -2,20 +2,20 @@ import { motion } from "framer-motion";
 import { Siren, Phone, MapPin, Loader2, CheckCircle2 } from "lucide-react";
 import { HOSPITALS } from "@/data/mockData";
 import HospitalCard from "@/components/HospitalCard";
-import { useGeolocation, calculateDistance } from "@/hooks/use-geolocation";
+import { useLocationContext } from "@/contexts/LocationContext";
+import { calculateDistance } from "@/hooks/use-geolocation";
 
 const EmergencyPage = () => {
-  const { location, loading, detect } = useGeolocation(true);
+  const { selectedCity, userCoords, detecting, detectLocation } = useLocationContext();
 
   const emergencyHospitals = HOSPITALS
     .filter(h => h.emergencySupported)
+    .filter(h => selectedCity ? h.city === selectedCity : true)
     .map(h => ({
       ...h,
-      distance: location
-        ? calculateDistance(location.lat, location.lng, h.lat, h.lng)
-        : h.distance,
+      distance: userCoords ? calculateDistance(userCoords.lat, userCoords.lng, h.lat, h.lng) : undefined,
     }))
-    .sort((a, b) => (a.distance || 999) - (b.distance || 999));
+    .sort((a, b) => (a.distance ?? 999) - (b.distance ?? 999));
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -31,7 +31,7 @@ const EmergencyPage = () => {
             </button>
           </motion.div>
           <h1 className="font-display text-3xl md:text-4xl font-extrabold text-foreground mb-2">
-            Emergency Services
+            Emergency Services {selectedCity && `in ${selectedCity}`}
           </h1>
           <p className="text-muted-foreground mb-4 max-w-lg mx-auto">
             Tap the button above or call emergency services immediately. We'll show you the nearest hospitals with emergency support.
@@ -40,18 +40,18 @@ const EmergencyPage = () => {
           {/* Location status */}
           <div className="flex items-center justify-center gap-2 text-sm mb-6">
             <MapPin className="w-4 h-4 text-muted-foreground" />
-            {loading ? (
+            {detecting ? (
               <span className="flex items-center gap-1.5 text-primary">
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 Detecting your location...
               </span>
-            ) : location ? (
+            ) : selectedCity ? (
               <span className="flex items-center gap-1.5 text-success">
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                Showing nearest emergency hospitals
+                Showing emergency hospitals in {selectedCity}
               </span>
             ) : (
-              <button onClick={detect} className="text-primary hover:underline underline-offset-2">
+              <button onClick={detectLocation} className="text-primary hover:underline underline-offset-2">
                 Enable location for nearest results
               </button>
             )}
@@ -78,9 +78,9 @@ const EmergencyPage = () => {
         {/* Quick services */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           {[
-            { label: "Nearest Emergency Hospitals", count: emergencyHospitals.length, icon: "🏥" },
-            { label: "Ambulance Services", count: HOSPITALS.filter(h => h.ambulanceAvailable).length, icon: "🚑" },
-            { label: "Blood Banks", count: HOSPITALS.filter(h => h.bloodBankAvailable).length, icon: "🩸" },
+            { label: "Emergency Hospitals", count: emergencyHospitals.length, icon: "🏥" },
+            { label: "Ambulance Services", count: emergencyHospitals.filter(h => h.ambulanceAvailable).length, icon: "🚑" },
+            { label: "Blood Banks", count: emergencyHospitals.filter(h => h.bloodBankAvailable).length, icon: "🩸" },
           ].map(item => (
             <div key={item.label} className="bg-card border border-border rounded-xl p-5 flex items-center gap-4">
               <span className="text-3xl">{item.icon}</span>
@@ -93,12 +93,20 @@ const EmergencyPage = () => {
         </div>
 
         {/* Emergency hospitals */}
-        <h2 className="font-display text-xl font-bold text-foreground mb-4">Nearest Emergency Hospitals</h2>
+        <h2 className="font-display text-xl font-bold text-foreground mb-4">
+          {selectedCity ? `Emergency Hospitals in ${selectedCity}` : "Nearest Emergency Hospitals"}
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {emergencyHospitals.map(hospital => (
             <HospitalCard key={hospital.id} hospital={hospital} />
           ))}
         </div>
+        {emergencyHospitals.length === 0 && (
+          <div className="text-center py-16 text-muted-foreground">
+            <p className="text-lg font-medium">No emergency hospitals found{selectedCity ? ` in ${selectedCity}` : ""}</p>
+            <p className="text-sm mt-1">Try selecting a different city</p>
+          </div>
+        )}
       </motion.div>
     </div>
   );
