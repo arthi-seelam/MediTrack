@@ -1,53 +1,169 @@
-# Welcome to your Lovable project
+# healthee: Find My Care
 
-## Project info
+A modern healthcare provider discovery platform that helps users find hospitals, doctors, and emergency services near their location.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Features
 
-## How can I edit this code?
+- **Hospital Discovery**: Search and filter hospitals by name, location, and services
+- **Doctor Finder**: Locate doctors by specialty, name, and consultation type
+- **Emergency Services**: Quick access to nearest emergency facilities with critical care capabilities
+- **Location Detection**: Automatic location detection to show services nearby
+- **Advanced Filtering**: Filter by emergency support, ICU availability, and 24/7 operations
+- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
 
-There are several ways of editing your application.
+## Tech Stack
 
-**Use Lovable**
+- **Frontend**: React 18 with TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS with shadcn/ui components
+- **Routing**: React Router v6
+- **State Management**: React Context API with React Query
+- **Geolocation**: Browser Geolocation API with Haversine distance calculation
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## Getting Started
 
-Changes made via Lovable will be committed automatically to this repo.
+### Prerequisites
 
-**Use your preferred IDE**
+- Node.js 16+ 
+- npm, yarn, or bun package manager
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Installation
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd healthee-find-my-care
+```
 
-Follow these steps:
+2. Install dependencies:
+```bash
+npm install
+# or
+yarn install
+# or
+bun install
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+3. Start the development server:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The application will be available at `http://localhost:8080`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Available Scripts
 
-**Use GitHub Codespaces**
+- `npm run dev` - Start development server with hot module reloading
+- `npm run build` - Build for production
+- `npm run build:dev` - Build in development mode
+- `npm run preview` - Preview production build locally
+- `npm run lint` - Run ESLint to check code quality
+- `npm run test` - Run tests with Vitest
+- `npm run test:watch` - Run tests in watch mode
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
+## Project Structure
+
+```
+src/
+├── components/          # React components
+│   ├── ui/             # shadcn/ui components
+│   ├── DoctorCard.tsx
+│   ├── HospitalCard.tsx
+│   ├── Layout.tsx
+│   └── Navbar.tsx
+├── contexts/           # React Context providers
+│   └── LocationContext.tsx
+├── data/               # Mock data
+│   └── mockData.ts
+├── hooks/              # Custom React hooks
+│   ├── use-geolocation.ts
+│   ├── use-mobile.tsx
+│   └── use-toast.ts
+├── lib/                # Utility functions
+│   └── utils.ts
+├── pages/              # Page components
+│   ├── Index.tsx
+│   ├── HospitalSearchPage.tsx
+│   ├── DoctorSearchPage.tsx
+│   ├── HospitalDetailPage.tsx
+│   ├── EmergencyPage.tsx
+│   └── NotFound.tsx
+├── test/               # Test files
+│   ├── example.test.ts
+│   └── setup.ts
+└── App.tsx
+```
+
+## Key Components
+
+### Pages
+
+- **Index** - Landing page with quick actions and search functionality
+- **HospitalSearchPage** - Hospital listing and filtering
+- **HospitalDetailPage** - Detailed information about a specific hospital
+- **DoctorSearchPage** - Doctor search with specialty and consultation type filters
+- **EmergencyPage** - Emergency services with nearest facility detection
+- **NotFound** - 404 page for invalid routes
+
+### Hooks
+
+- `useLocationContext` - Access location state and city selection
+- `useGeolocation` - Browser geolocation with distance calculations
+- `useToast` - Toast notification system
+- `useMobile` - Detect if viewing on mobile device
+
+## Features in Detail
+
+### Location Management
+
+The application automatically detects user location and finds the nearest city from the available list. Users can manually select a different city from the navigation bar. Location data is persisted in localStorage.
+
+### Search and Filtering
+
+Hospitals can be filtered by:
+- Name/keyword search
+- Emergency support availability
+- ICU availability
+- 24/7 operations
+
+Doctors can be filtered by:
+- Name/keyword search
+- Specialization
+- Consultation type (Online/Offline/Both)
+
+### Distance Calculation
+
+Uses the Haversine formula to accurately calculate distances between user location and facilities.
+
+## TypeScript
+
+The project uses strict TypeScript mode for type safety. All components and utilities are fully typed.
+
+## Styling
+
+- **Tailwind CSS** for utility-first styling
+- **shadcn/ui** for accessible, pre-built components
+- **Framer Motion** for smooth animations
+- Custom color theme with semantic tokens
+
+## Browser Support
+
+- Chrome (latest)
+- Firefox (latest)
+- Safari (latest)
+- Edge (latest)
+
+## Development Guidelines
+
+- Follow the existing code structure and naming conventions
+- Use TypeScript for all new code
+- Add JSDoc comments for complex functions
+- Ensure code passes ESLint checks
+- Test components with the provided test setup
+
+## License
+
+This project is private and proprietary.
 - Edit files directly within the Codespace and commit and push your changes once you're done.
 
 ## What technologies are used for this project?

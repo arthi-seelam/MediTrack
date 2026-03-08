@@ -2,42 +2,52 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Search, SlidersHorizontal, MapPin } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
-import { HOSPITALS } from "@/data/mockData";
+import { HOSPITALS, Hospital } from "@/data/mockData";
 import HospitalCard from "@/components/HospitalCard";
 import { useLocationContext } from "@/contexts/LocationContext";
 import { calculateDistance } from "@/hooks/use-geolocation";
+
+interface HospitalFilters {
+  emergency: boolean;
+  icu: boolean;
+  twentyFourSeven: boolean;
+}
+
+/** Apply search and facility filters to hospitals */
+function matches(hospital: Hospital, searchTerm: string, filters: HospitalFilters, cityFilter?: string): boolean {
+  if (cityFilter && hospital.city !== cityFilter) return false;
+  if (searchTerm && !hospital.name.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+  if (filters.emergency && !hospital.emergencySupported) return false;
+  if (filters.icu && !hospital.icuAvailable) return false;
+  if (filters.twentyFourSeven && !hospital.is24x7) return false;
+  return true;
+}
 
 const HospitalSearchPage = () => {
   const [searchParams] = useSearchParams();
   const initialSearch = searchParams.get("search") || "";
 
   const [search, setSearch] = useState(initialSearch);
-  const [emergencyOnly, setEmergencyOnly] = useState(false);
-  const [icuOnly, setIcuOnly] = useState(false);
-  const [is24x7, setIs24x7] = useState(false);
+  const [filters, setFilters] = useState<HospitalFilters>({
+    emergency: false,
+    icu: false,
+    twentyFourSeven: false,
+  });
   const [showFilters, setShowFilters] = useState(false);
 
   const { selectedCity, userCoords } = useLocationContext();
 
   const filtered = useMemo(() => {
     return HOSPITALS
-      .filter(h => {
-        // Filter by selected city
-        if (selectedCity && h.city !== selectedCity) return false;
-        if (search && !h.name.toLowerCase().includes(search.toLowerCase())) return false;
-        if (emergencyOnly && !h.emergencySupported) return false;
-        if (icuOnly && !h.icuAvailable) return false;
-        if (is24x7 && !h.is24x7) return false;
-        return true;
-      })
-      .map(h => ({
-        ...h,
-        distance: userCoords ? calculateDistance(userCoords.lat, userCoords.lng, h.lat, h.lng) : undefined,
+      .filter(hospital => matches(hospital, search, filters, selectedCity))
+      .map(hospital => ({
+        ...hospital,
+        distance: userCoords ? calculateDistance(userCoords.lat, userCoords.lng, hospital.lat, hospital.lng) : undefined,
       }))
       .sort((a, b) => (a.distance ?? 999) - (b.distance ?? 999));
-  }, [search, emergencyOnly, icuOnly, is24x7, selectedCity, userCoords]);
+  }, [search, filters, selectedCity, userCoords]);
 
-  const activeFilters = [emergencyOnly && "Emergency", icuOnly && "ICU", is24x7 && "24×7"].filter(Boolean).length;
+  const activeFilterCount = Object.values(filters).filter(Boolean).length;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -67,16 +77,16 @@ const HospitalSearchPage = () => {
           <button
             onClick={() => setShowFilters(!showFilters)}
             className={`flex items-center gap-2 px-4 py-3 rounded-xl border text-sm font-medium transition-colors ${
-              showFilters || activeFilters > 0
+              showFilters || activeFilterCount > 0
                 ? "bg-primary text-primary-foreground border-primary"
                 : "bg-card border-border text-muted-foreground hover:text-foreground"
             }`}
           >
             <SlidersHorizontal className="w-4 h-4" />
             Filters
-            {activeFilters > 0 && (
+            {activeFilterCount > 0 && (
               <span className="w-5 h-5 rounded-full bg-primary-foreground text-primary text-xs flex items-center justify-center font-bold">
-                {activeFilters}
+                {activeFilterCount}
               </span>
             )}
           </button>
@@ -92,7 +102,7 @@ const HospitalSearchPage = () => {
             <div className="flex items-center justify-between mb-4">
               <span className="font-display font-semibold text-foreground">Filters</span>
               <button
-                onClick={() => { setEmergencyOnly(false); setIcuOnly(false); setIs24x7(false); }}
+                onClick={() => setFilters({ emergency: false, icu: false, twentyFourSeven: false })}
                 className="text-sm text-primary hover:underline"
               >
                 Clear all
@@ -100,15 +110,30 @@ const HospitalSearchPage = () => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={emergencyOnly} onChange={(e) => setEmergencyOnly(e.target.checked)} className="rounded" />
+                <input
+                  type="checkbox"
+                  checked={filters.emergency}
+                  onChange={(e) => setFilters({ ...filters, emergency: e.target.checked })}
+                  className="rounded"
+                />
                 <span className="text-sm text-foreground">Emergency Support</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={icuOnly} onChange={(e) => setIcuOnly(e.target.checked)} className="rounded" />
+                <input
+                  type="checkbox"
+                  checked={filters.icu}
+                  onChange={(e) => setFilters({ ...filters, icu: e.target.checked })}
+                  className="rounded"
+                />
                 <span className="text-sm text-foreground">ICU Available</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={is24x7} onChange={(e) => setIs24x7(e.target.checked)} className="rounded" />
+                <input
+                  type="checkbox"
+                  checked={filters.twentyFourSeven}
+                  onChange={(e) => setFilters({ ...filters, twentyFourSeven: e.target.checked })}
+                  className="rounded"
+                />
                 <span className="text-sm text-foreground">24×7 Hospitals</span>
               </label>
             </div>

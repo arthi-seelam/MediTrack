@@ -5,15 +5,22 @@ import HospitalCard from "@/components/HospitalCard";
 import { useLocationContext } from "@/contexts/LocationContext";
 import { calculateDistance } from "@/hooks/use-geolocation";
 
+/** Emergency service contact numbers */
+const EMERGENCY_SERVICES = [
+  { number: "112", label: "Emergency", colorClass: "bg-emergency text-emergency-foreground" },
+  { number: "108", label: "Ambulance", colorClass: "bg-primary text-primary-foreground" },
+] as const;
+
 const EmergencyPage = () => {
   const { selectedCity, userCoords, detecting, detectLocation } = useLocationContext();
 
+  // Find hospitals with emergency support, sorted by distance
   const emergencyHospitals = HOSPITALS
-    .filter(h => h.emergencySupported)
-    .filter(h => selectedCity ? h.city === selectedCity : true)
-    .map(h => ({
-      ...h,
-      distance: userCoords ? calculateDistance(userCoords.lat, userCoords.lng, h.lat, h.lng) : undefined,
+    .filter(hospital => hospital.emergencySupported)
+    .filter(hospital => selectedCity ? hospital.city === selectedCity : true)
+    .map(hospital => ({
+      ...hospital,
+      distance: userCoords ? calculateDistance(userCoords.lat, userCoords.lng, hospital.lat, hospital.lng) : undefined,
     }))
     .sort((a, b) => (a.distance ?? 999) - (b.distance ?? 999));
 
@@ -58,20 +65,16 @@ const EmergencyPage = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <a
-              href="tel:112"
-              className="flex items-center gap-2 px-8 py-4 rounded-xl bg-emergency text-emergency-foreground font-bold text-lg hover:opacity-90"
-            >
-              <Phone className="w-5 h-5" />
-              Call 112 (Emergency)
-            </a>
-            <a
-              href="tel:108"
-              className="flex items-center gap-2 px-8 py-4 rounded-xl bg-primary text-primary-foreground font-bold text-lg hover:opacity-90"
-            >
-              <Phone className="w-5 h-5" />
-              Call 108 (Ambulance)
-            </a>
+            {EMERGENCY_SERVICES.map(service => (
+              <a
+                key={service.number}
+                href={`tel:${service.number}`}
+                className={`flex items-center gap-2 px-8 py-4 rounded-xl ${service.colorClass} font-bold text-lg hover:opacity-90`}
+              >
+                <Phone className="w-5 h-5" />
+                Call {service.number} ({service.label})
+              </a>
+            ))}
           </div>
         </div>
 

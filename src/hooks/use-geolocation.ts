@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 
+/** User location coordinates */
 export interface UserLocation {
   lat: number;
   lng: number;
   city?: string;
 }
 
+/** Geolocation hook state */
 interface GeolocationState {
   location: UserLocation | null;
   loading: boolean;
@@ -13,38 +15,84 @@ interface GeolocationState {
   detect: () => void;
 }
 
-function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+/**
+ * Calculates distance between two geographic points using Haversine formula
+ * @param startLat - Starting latitude
+ * @param startLng - Starting longitude
+ * @param endLat - Ending latitude
+ * @param endLng - Ending longitude
+ * @returns Distance in kilometers (rounded to 1 decimal)
+ */
+function haversineDistance(
+  startLat: number,
+  startLng: number,
+  endLat: number,
+  endLng: number
+): number {
+  const EARTH_RADIUS_KM = 6371;
+  const toRadian = (degree: number) => (degree * Math.PI) / 180;
+
+  const latDelta = toRadian(endLat - startLat);
+  const lngDelta = toRadian(endLng - startLng);
+
+  // Haversine formula
   const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    Math.sin(latDelta / 2) ** 2 +
+    Math.cos(toRadian(startLat)) *
+      Math.cos(toRadian(endLat)) *
+      Math.sin(lngDelta / 2) ** 2;
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return EARTH_RADIUS_KM * c;
 }
 
-export function calculateDistance(userLat: number, userLng: number, destLat: number, destLng: number): number {
-  return Math.round(haversineDistance(userLat, userLng, destLat, destLng) * 10) / 10;
+/**
+ * Calculates distance between two geographic points
+ * @param userLat - User latitude
+ * @param userLng - User longitude
+ * @param pointLat - Point latitude (hospital/doctor location)
+ * @param pointLng - Point longitude (hospital/doctor location)
+ * @returns Distance in kilometers (rounded to 1 decimal)
+ */
+export function calculateDistance(
+  userLat: number,
+  userLng: number,
+  pointLat: number,
+  pointLng: number
+): number {
+  return Math.round(haversineDistance(userLat, userLng, pointLat, pointLng) * 10) / 10;
 }
 
+/**
+ * Hook for geolocation functionality
+ * Provides location detection and local storage persistence
+ * @param autoDetect - Whether to automatically detect location on mount
+ * @returns Geolocation state and detect function
+ */
 export function useGeolocation(autoDetect = false): GeolocationState {
   const [location, setLocation] = useState<UserLocation | null>(() => {
     const saved = localStorage.getItem("meditrack_location");
-    return saved ? JSON.parse(saved) : null;
+    return saved ? (JSON.parse(saved) as UserLocation) : null;
   });
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const detect = useCallback(() => {
+  const detect = useCallback((): void => {
     if (!navigator.geolocation) {
       setError("Geolocation is not supported by your browser");
       return;
     }
+
     setLoading(true);
     setError(null);
+
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const loc: UserLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        const loc: UserLocation = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        };
         setLocation(loc);
         localStorage.setItem("meditrack_location", JSON.stringify(loc));
         setLoading(false);

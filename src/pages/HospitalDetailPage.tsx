@@ -1,8 +1,20 @@
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { MapPin, Phone, Clock, Star, ArrowLeft, CheckCircle2, XCircle, Building2 } from "lucide-react";
-import { HOSPITALS, DOCTORS } from "@/data/mockData";
+import { HOSPITALS, DOCTORS, Hospital } from "@/data/mockData";
 import DoctorCard from "@/components/DoctorCard";
+
+/** Build facility list from hospital data */
+function getFacilities(hospital: Hospital) {
+  return [
+    { label: "Emergency Services", available: hospital.emergencySupported },
+    { label: "ICU", available: hospital.icuAvailable },
+    { label: "Ambulance", available: hospital.ambulanceAvailable },
+    { label: "Blood Bank", available: hospital.bloodBankAvailable },
+    { label: "Trauma Care", available: hospital.traumaSupport },
+    { label: "Ventilator", available: hospital.ventilatorAvailable },
+  ];
+}
 
 const HospitalDetailPage = () => {
   const { id } = useParams();
@@ -18,15 +30,7 @@ const HospitalDetailPage = () => {
   }
 
   const hospitalDoctors = DOCTORS.filter(d => d.hospitalId === hospital.id);
-
-  const facilities = [
-    { label: "Emergency Services", available: hospital.emergencySupported },
-    { label: "ICU", available: hospital.icuAvailable },
-    { label: "Ambulance", available: hospital.ambulanceAvailable },
-    { label: "Blood Bank", available: hospital.bloodBankAvailable },
-    { label: "Trauma Care", available: hospital.traumaSupport },
-    { label: "Ventilator", available: hospital.ventilatorAvailable },
-  ];
+  const facilities = getFacilities(hospital);
 
   return (
     <div className="container mx-auto px-4 py-8">

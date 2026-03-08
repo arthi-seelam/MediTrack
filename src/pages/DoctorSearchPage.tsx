@@ -2,29 +2,42 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Search, MapPin } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
-import { DOCTORS, SPECIALTIES } from "@/data/mockData";
+import { DOCTORS, SPECIALTIES, Doctor } from "@/data/mockData";
 import DoctorCard from "@/components/DoctorCard";
 import { useLocationContext } from "@/contexts/LocationContext";
+
+interface DoctorFilters {
+  specialty: string;
+  consultationType: string;
+}
+
+/** Check if a doctor matches search criteria and active filters */
+function matches(doctor: Doctor, searchTerm: string, filters: DoctorFilters, cityFilter?: string): boolean {
+  if (cityFilter && doctor.city !== cityFilter) return false;
+  if (searchTerm && !doctor.name.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+  if (filters.specialty) {
+    const selectedSpec = SPECIALTIES.find(s => s.slug === filters.specialty)?.label.toLowerCase();
+    if (selectedSpec && doctor.specialization.toLowerCase() !== selectedSpec) return false;
+  }
+  if (filters.consultationType && doctor.consultationType !== filters.consultationType && doctor.consultationType !== 'Both') return false;
+  return true;
+}
 
 const DoctorSearchPage = () => {
   const [searchParams] = useSearchParams();
   const initialSpecialty = searchParams.get("specialty") || "";
 
   const [search, setSearch] = useState("");
-  const [specialty, setSpecialty] = useState(initialSpecialty);
-  const [consultationType, setConsultationType] = useState("");
+  const [filters, setFilters] = useState<DoctorFilters>({
+    specialty: initialSpecialty,
+    consultationType: "",
+  });
 
   const { selectedCity } = useLocationContext();
 
   const filtered = useMemo(() => {
-    return DOCTORS.filter(d => {
-      if (selectedCity && d.city !== selectedCity) return false;
-      if (search && !d.name.toLowerCase().includes(search.toLowerCase())) return false;
-      if (specialty && d.specialization.toLowerCase() !== SPECIALTIES.find(s => s.slug === specialty)?.label.toLowerCase()) return false;
-      if (consultationType && d.consultationType !== consultationType && d.consultationType !== 'Both') return false;
-      return true;
-    });
-  }, [search, specialty, consultationType, selectedCity]);
+    return DOCTORS.filter(doctor => matches(doctor, search, filters, selectedCity));
+  }, [search, filters, selectedCity]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -51,16 +64,16 @@ const DoctorSearchPage = () => {
             />
           </div>
           <select
-            value={specialty}
-            onChange={(e) => setSpecialty(e.target.value)}
+            value={filters.specialty}
+            onChange={(e) => setFilters({ ...filters, specialty: e.target.value })}
             className="px-4 py-3 rounded-xl border border-border bg-card text-foreground text-sm"
           >
             <option value="">All Specialties</option>
-            {SPECIALTIES.map(s => <option key={s.slug} value={s.slug}>{s.label}</option>)}
+            {SPECIALTIES.map(spec => <option key={spec.slug} value={spec.slug}>{spec.label}</option>)}
           </select>
           <select
-            value={consultationType}
-            onChange={(e) => setConsultationType(e.target.value)}
+            value={filters.consultationType}
+            onChange={(e) => setFilters({ ...filters, consultationType: e.target.value })}
             className="px-4 py-3 rounded-xl border border-border bg-card text-foreground text-sm"
           >
             <option value="">All Types</option>

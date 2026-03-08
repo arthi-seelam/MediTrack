@@ -1,62 +1,93 @@
 import { Doctor } from "@/data/mockData";
 import { Star, Clock, Building2, Stethoscope } from "lucide-react";
 
-const DoctorCard = ({ doctor }: { doctor: Doctor }) => {
-  const initials = doctor.name.split(' ').map(n => n[0]).join('').slice(0, 2);
+interface DoctorCardProps {
+  readonly doctor: Doctor;
+}
+
+/** Extract initials from doctor name for avatar */
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+/** Get Tailwind classes for consultation type badge */
+function getConsultationTypeStyles(type: Doctor["consultationType"]): string {
+  const styleMap: Record<Doctor["consultationType"], string> = {
+    Online: "bg-success/10 text-success",
+    Offline: "bg-primary/10 text-primary",
+    Both: "bg-accent/10 text-accent",
+  };
+  return styleMap[type];
+}
+
+/**
+ * Displays doctor profile card with key information
+ */
+const DoctorCard: React.FC<DoctorCardProps> = ({ doctor }) => {
+  const initials = getInitials(doctor.name);
+  const consultationStyles = getConsultationTypeStyles(doctor.consultationType);
 
   return (
-    <div className="bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg transition-all duration-300 p-5">
+    <div className="overflow-hidden rounded-xl border border-border bg-card p-5 transition-all duration-300 hover:shadow-lg">
       <div className="flex items-start gap-4">
         {/* Avatar */}
-        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary font-display font-bold text-lg shrink-0">
+        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-primary/10 font-display text-lg font-bold text-primary">
           {initials}
         </div>
 
-        <div className="flex-1 min-w-0">
-          <h3 className="font-display font-bold text-lg text-card-foreground">{doctor.name}</h3>
-          <div className="flex items-center gap-1.5 text-sm text-primary font-medium mt-0.5">
-            <Stethoscope className="w-3.5 h-3.5" />
+        {/* Content */}
+        <div className="min-w-0 flex-1">
+          <h3 className="font-display text-lg font-bold text-card-foreground">
+            {doctor.name}
+          </h3>
+
+          <div className="mt-0.5 flex items-center gap-1.5 text-sm font-medium text-primary">
+            <Stethoscope className="h-3.5 w-3.5" />
             {doctor.specialization}
           </div>
 
-          <div className="flex items-center gap-3 mt-2 text-sm text-muted-foreground">
+          <div className="mt-2 flex items-center gap-3 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
-              <Building2 className="w-3.5 h-3.5" />
+              <Building2 className="h-3.5 w-3.5" />
               <span>{doctor.hospitalName}</span>
             </div>
             <span>•</span>
             <span>{doctor.experienceYears} yrs exp</span>
           </div>
 
-          <div className="flex items-center gap-3 mt-2">
-            <div className="flex items-center gap-1 text-warning text-sm font-semibold">
-              <Star className="w-3.5 h-3.5" fill="currentColor" />
+          <div className="mt-2 flex items-center gap-3">
+            <div className="flex items-center gap-1 text-sm font-semibold text-warning">
+              <Star className="h-3.5 w-3.5" fill="currentColor" />
               {doctor.rating}
             </div>
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
-              <Clock className="w-3.5 h-3.5" />
+              <Clock className="h-3.5 w-3.5" />
               {doctor.availableTimings}
             </div>
           </div>
 
-          <div className="flex items-center gap-2 mt-3">
-            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-              doctor.consultationType === 'Online' ? 'bg-success/10 text-success' :
-              doctor.consultationType === 'Offline' ? 'bg-primary/10 text-primary' :
-              'bg-accent text-accent-foreground'
-            }`}>
+          <div className="mt-3 flex items-center gap-2">
+            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${consultationStyles}`}>
               {doctor.consultationType}
             </span>
-            <span className="text-sm font-semibold text-foreground">₹{doctor.consultationFee}</span>
+            <span className="text-sm font-semibold text-foreground">
+              ₹{doctor.consultationFee}
+            </span>
           </div>
         </div>
       </div>
 
+      {/* Action Buttons */}
       <div className="mt-4 flex gap-2">
-        <button className="flex-1 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity">
+        <button className="flex-1 rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">
           Book Appointment
         </button>
-        <button className="flex-1 py-2.5 rounded-lg bg-secondary text-secondary-foreground text-sm font-semibold hover:opacity-90 transition-opacity">
+        <button className="flex-1 rounded-lg bg-secondary py-2.5 text-sm font-semibold text-secondary-foreground transition-opacity hover:opacity-90">
           View Profile
         </button>
       </div>

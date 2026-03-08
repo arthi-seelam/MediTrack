@@ -1,3 +1,13 @@
+/**
+ * Mock data for healthcare providers.
+ * 
+ * This module contains type definitions and sample data for:
+ * - Hospital information and facilities
+ * - Doctor profiles and specializations
+ * - Supported cities and specialties
+ */
+
+/** Hospital facility information */
 export interface Hospital {
   id: string;
   name: string;
@@ -26,6 +36,7 @@ export interface Hospital {
   distance?: number;
 }
 
+/** Doctor profile information */
 export interface Doctor {
   id: string;
   name: string;
@@ -41,6 +52,7 @@ export interface Doctor {
   image: string;
 }
 
+/** Medical specialties supported by the platform */
 export const SPECIALTIES = [
   { label: 'Cardiology', icon: '❤️', slug: 'cardiology' },
   { label: 'Dermatology', icon: '🧴', slug: 'dermatology' },
@@ -52,6 +64,7 @@ export const SPECIALTIES = [
   { label: 'Ophthalmology', icon: '👁️', slug: 'ophthalmology' },
 ];
 
+/** Supported cities with geographic coordinates */
 export const CITIES = [
   { name: 'Hyderabad', state: 'Telangana', lat: 17.385, lng: 78.486 },
   { name: 'Warangal', state: 'Telangana', lat: 17.9784, lng: 79.5941 },
@@ -63,6 +76,7 @@ export const CITIES = [
   { name: 'Khammam', state: 'Telangana', lat: 17.2473, lng: 80.1514 },
 ];
 
+/** Hospitals database */
 export const HOSPITALS: Hospital[] = [
   // Hyderabad
   {
