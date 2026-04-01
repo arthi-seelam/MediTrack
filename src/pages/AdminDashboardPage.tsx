@@ -101,7 +101,7 @@ const AdminDashboardPage = () => {
   }, [hospital]);
 
   const updateAppointmentStatus = async (id: string, status: string) => {
-    await supabase.from("appointments").update({ status }).eq("id", id);
+    await supabase.from("appointments").update({ status: status as "pending" | "confirmed" | "rejected" | "completed" }).eq("id", id);
     toast({ title: `Appointment ${status}` });
     fetchData();
   };
