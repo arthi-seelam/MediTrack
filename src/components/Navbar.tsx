@@ -104,13 +104,32 @@ const Navbar = () => {
           })}
         </div>
 
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-2">
           <Link
             to="/emergency"
             className="px-4 py-2 rounded-lg bg-emergency text-emergency-foreground text-sm font-semibold emergency-pulse"
           >
             🚑 Emergency
           </Link>
+          {user ? (
+            <>
+              <Link to="/my-appointments" className="px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                <CalendarCheck className="w-4 h-4 inline mr-1" />Appointments
+              </Link>
+              {isHospitalAdmin && (
+                <Link to="/admin" className="px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                  Dashboard
+                </Link>
+              )}
+              <button onClick={signOut} className="px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                <LogOut className="w-4 h-4 inline mr-1" />Logout
+              </button>
+            </>
+          ) : (
+            <Link to="/auth" className="px-4 py-2 rounded-lg border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors">
+              <User className="w-4 h-4 inline mr-1" />Sign In
+            </Link>
+          )}
         </div>
 
         {/* Mobile menu toggle */}
