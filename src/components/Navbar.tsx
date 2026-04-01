@@ -1,8 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Heart, Menu, X, MapPin, ChevronDown, Loader2 } from "lucide-react";
+import { Heart, Menu, X, MapPin, ChevronDown, Loader2, User, LogOut, CalendarCheck } from "lucide-react";
 import { useState } from "react";
 import { useLocationContext } from "@/contexts/LocationContext";
+import { useAuth } from "@/hooks/useAuth";
 import { CITIES } from "@/data/mockData";
 
 const NAV_ITEMS = [
