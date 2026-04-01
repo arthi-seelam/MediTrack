@@ -18,6 +18,7 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
   const { selectedCity, setSelectedCity, detecting, detectLocation } = useLocationContext();
+  const { user, signOut, isHospitalAdmin } = useAuth();
 
   return (
     <nav className="sticky top-0 z-50 glass-card border-b">
