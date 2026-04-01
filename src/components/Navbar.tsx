@@ -1,8 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Heart, Menu, X, MapPin, ChevronDown, Loader2 } from "lucide-react";
+import { Heart, Menu, X, MapPin, ChevronDown, Loader2, User, LogOut, CalendarCheck } from "lucide-react";
 import { useState } from "react";
 import { useLocationContext } from "@/contexts/LocationContext";
+import { useAuth } from "@/hooks/useAuth";
 import { CITIES } from "@/data/mockData";
 
 const NAV_ITEMS = [
@@ -17,6 +18,7 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
   const { selectedCity, setSelectedCity, detecting, detectLocation } = useLocationContext();
+  const { user, signOut, isHospitalAdmin } = useAuth();
 
   return (
     <nav className="sticky top-0 z-50 glass-card border-b">
@@ -102,13 +104,32 @@ const Navbar = () => {
           })}
         </div>
 
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-2">
           <Link
             to="/emergency"
             className="px-4 py-2 rounded-lg bg-emergency text-emergency-foreground text-sm font-semibold emergency-pulse"
           >
             🚑 Emergency
           </Link>
+          {user ? (
+            <>
+              <Link to="/my-appointments" className="px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                <CalendarCheck className="w-4 h-4 inline mr-1" />Appointments
+              </Link>
+              {isHospitalAdmin && (
+                <Link to="/admin" className="px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                  Dashboard
+                </Link>
+              )}
+              <button onClick={signOut} className="px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                <LogOut className="w-4 h-4 inline mr-1" />Logout
+              </button>
+            </>
+          ) : (
+            <Link to="/auth" className="px-4 py-2 rounded-lg border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors">
+              <User className="w-4 h-4 inline mr-1" />Sign In
+            </Link>
+          )}
         </div>
 
         {/* Mobile menu toggle */}

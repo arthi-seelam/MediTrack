@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { MapPin, Phone, Clock, Star, ArrowLeft, CheckCircle2, XCircle, Building2 } from "lucide-react";
+import { MapPin, Phone, Star, ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
 import { HOSPITALS, DOCTORS, Hospital } from "@/data/mockData";
 import DoctorCard from "@/components/DoctorCard";
 
