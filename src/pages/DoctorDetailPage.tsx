@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { MapPin, Phone, Clock, Star, ArrowLeft, Building2, Stethoscope, Calendar, MessageCircle } from "lucide-react";
+import { MapPin, Phone, Clock, Star, ArrowLeft, Building2, Stethoscope, Calendar } from "lucide-react";
 import { DOCTORS, HOSPITALS, Doctor } from "@/data/mockData";
 import {
   Dialog,
