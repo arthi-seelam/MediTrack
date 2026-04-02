@@ -54,7 +54,10 @@ const BookAppointmentDialog = ({ doctorId, doctorName, hospitalId, consultationF
     setLoading(false);
 
     if (error) {
-      toast({ title: "Booking failed", description: error.message, variant: "destructive" });
+      const msg = error.message.includes("idx_no_double_booking") 
+        ? "This time slot is already booked. Please choose a different date or time."
+        : error.message;
+      toast({ title: "Booking failed", description: msg, variant: "destructive" });
     } else {
       toast({ title: "Appointment booked!", description: "Your appointment is pending confirmation from the hospital." });
       setOpen(false);

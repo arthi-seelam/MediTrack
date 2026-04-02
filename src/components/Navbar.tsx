@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Heart, Menu, X, MapPin, ChevronDown, Loader2, User, LogOut, CalendarCheck } from "lucide-react";
+import { Heart, Menu, X, MapPin, ChevronDown, Loader2, User, LogOut, CalendarCheck, Stethoscope } from "lucide-react";
 import { useState } from "react";
 import { useLocationContext } from "@/contexts/LocationContext";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,7 +18,8 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
   const { selectedCity, setSelectedCity, detecting, detectLocation } = useLocationContext();
-  const { user, signOut, isHospitalAdmin } = useAuth();
+  const { user, signOut, isHospitalAdmin, roles } = useAuth();
+  const isDoctor = roles.includes("doctor");
 
   return (
     <nav className="sticky top-0 z-50 glass-card border-b">
@@ -119,6 +120,11 @@ const Navbar = () => {
               {isHospitalAdmin && (
                 <Link to="/admin" className="px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
                   Dashboard
+                </Link>
+              )}
+              {isDoctor && (
+                <Link to="/doctor-dashboard" className="px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                  <Stethoscope className="w-4 h-4 inline mr-1" />My Patients
                 </Link>
               )}
               <button onClick={signOut} className="px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">

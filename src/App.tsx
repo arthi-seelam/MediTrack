@@ -15,6 +15,7 @@ import EmergencyPage from "./pages/EmergencyPage";
 import AuthPage from "./pages/AuthPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
+import DoctorDashboardPage from "./pages/DoctorDashboardPage";
 import UserDashboardPage from "./pages/UserDashboardPage";
 import NotFound from "./pages/NotFound";
 
@@ -41,6 +42,7 @@ const App = () => (
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/admin/login" element={<AdminLoginPage />} />
               <Route path="/admin" element={<AdminDashboardPage />} />
+              <Route path="/doctor-dashboard" element={<DoctorDashboardPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </LocationProvider>
