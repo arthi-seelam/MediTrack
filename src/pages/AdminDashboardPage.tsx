@@ -204,6 +204,7 @@ const AdminDashboardPage = () => {
                   <SelectItem value="confirmed">Confirmed</SelectItem>
                   <SelectItem value="rejected">Rejected</SelectItem>
                   <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
                 </SelectContent>
               </Select>
             </div>
