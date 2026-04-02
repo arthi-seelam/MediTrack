@@ -47,6 +47,7 @@ const statusColors: Record<string, string> = {
   confirmed: "bg-success/10 text-success border-success/20",
   rejected: "bg-destructive/10 text-destructive border-destructive/20",
   completed: "bg-primary/10 text-primary border-primary/20",
+  cancelled: "bg-muted text-muted-foreground border-border",
 };
 
 const AdminDashboardPage = () => {
