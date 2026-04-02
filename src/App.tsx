@@ -42,6 +42,7 @@ const App = () => (
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/admin/login" element={<AdminLoginPage />} />
               <Route path="/admin" element={<AdminDashboardPage />} />
+              <Route path="/doctor-dashboard" element={<DoctorDashboardPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </LocationProvider>
