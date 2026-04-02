@@ -15,6 +15,7 @@ import EmergencyPage from "./pages/EmergencyPage";
 import AuthPage from "./pages/AuthPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
+import DoctorDashboardPage from "./pages/DoctorDashboardPage";
 import UserDashboardPage from "./pages/UserDashboardPage";
 import NotFound from "./pages/NotFound";
 
